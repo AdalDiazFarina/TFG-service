@@ -1,7 +1,7 @@
 import subprocess
-from app.notebooks.services.kafka_service import KafkaService
-from app.notebooks.services.json_service import load_data
-from app.notebooks.services.database_service import create_strategy_record, associate_strategies_with_profiles
+from app.services.kafka_service import KafkaService
+from app.services.json_service import load_data
+from app.services.database_service import create_strategy_record, associate_strategies_with_profiles
 
 def run():
   print("Starting kafka ....") 
@@ -28,7 +28,7 @@ def kafka_is_running():
 def run_kafka():
   print("Running kafka")
   kafka_service = KafkaService()
-  kafka_service.receive('completed_tasks')
+  kafka_service.receive('tasks')
 
 
 def main():
@@ -38,8 +38,9 @@ def main():
     for strategy in data:
         name = strategy.get('name', '')
         description = strategy.get('description', '')
-        if name and description:
-            create_strategy_record(name, description)
+        model = strategy.get('model', '')
+        if name and description and model:
+            create_strategy_record(name, description, model)
         else:
             print("The object in the JSON file does not have complete 'name' and 'description' fields.")
     

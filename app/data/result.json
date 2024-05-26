@@ -1,0 +1,14 @@
+[
+    {
+        "total_profitability": 8717.649693654652,
+        "volatility": 4.498611606753205,
+        "maximum_loss": -24.84333038330078,
+        "sharpe": 2.1115308472262253,
+        "sortino": -306.4744486298525,
+        "alpha": 20.356894281503315,
+        "beta": 0.6670797440145874,
+        "information_ratio": 1.9816391165652287,
+        "success_rate": 0.0,
+        "portfolio_concentration_ratio": 75.16751675167515
+    }
+]
