@@ -1,6 +1,6 @@
 import subprocess
 from app.services.kafka_service import KafkaService
-from app.services.json_service import load_data
+# from app.services.json_service import load_data
 from app.services.database_service import create_strategy_record, associate_strategies_with_profiles
 
 def run():
@@ -32,19 +32,7 @@ def run_kafka():
 
 
 def main():
-    filename = 'app/data/strategies.json'
-    data = load_data(filename)
-
-    for strategy in data:
-        name = strategy.get('name', '')
-        description = strategy.get('description', '')
-        model = strategy.get('model', '')
-        if name and description and model:
-            create_strategy_record(name, description, model)
-        else:
-            print("The object in the JSON file does not have complete 'name' and 'description' fields.")
-    
-    associate_strategies_with_profiles()
+  associate_strategies_with_profiles()
 
 if __name__ == '__main__':
     main()

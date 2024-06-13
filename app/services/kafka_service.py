@@ -5,8 +5,8 @@ from nbconvert.preprocessors import ExecutePreprocessor
 from nbconvert import HTMLExporter
 from confluent_kafka import Consumer, KafkaError, Producer
 from dotenv import load_dotenv
-from app.services.json_service import load_data
-from app.services.database_service import updateInvestmentProfileStrategy, getModelName
+# from app.services.json_service import load_data
+# from app.services.database_service import updateInvestmentProfileStrategy, getModelName, create_operations
 
 load_dotenv()
 BOOTSTRAP_SERVERS = os.getenv("BOOTSTRAP_SERVERS")
@@ -56,13 +56,16 @@ def validateMessage(message):
     ## TODO: Validar el modelo
     ## TODO: Guardar los resultados en la base de datos
     ## TODO: Mensaje terminado validación
-    filename = './app/data/result.json'
-    runNotebook('app/notebooks/' + getModelName(message['strategy_id']) + '.ipynb')
-    data = load_data(filename)
-    updateInvestmentProfileStrategy(message['profile_id'], message['strategy_id'], data)
-    print('- Validating message ...')
-    print('######################')
-    return {"message": "Validation successful!", "code": 1, "strategy_id": message['strategy_id'], "profile_id": message['profile_id']}
+    # filename = './app/data/result.json'
+    # runNotebook('app/notebooks/' + getModelName(message['strategy_id']) + '.ipynb')
+    # data = load_data(filename)
+    # updateInvestmentProfileStrategy(message['profile_id'], message['strategy_id'], data)
+    # filename = './app/data/operations.json'
+    # data = load_data(filename)
+    # create_operations(message['profile_id'], message['strategy_id'], data)
+    # print('- Validating message ...')
+    # print('######################')
+    # return {"message": "Validation successful!", "code": 1, "strategy_id": message['strategy_id'], "profile_id": message['profile_id']}
     
 
 def runNotebook(route):
@@ -71,3 +74,4 @@ def runNotebook(route):
     
     runner = ExecutePreprocessor(timeout=None)
     runner.preprocess(notebook, {'metadata': {'path': os.path.dirname(route)}})
+    

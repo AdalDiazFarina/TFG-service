@@ -22,6 +22,15 @@ def save_data(data, filename):
 def create_object(name, description, model):
     return {'name': name, 'description': description, 'model': model}
 
+def create_operation(start, end, price, total, profit, period):
+    return {'start': start, 'end': end, 'price': price, 'total': total, 'profit': profit, 'period': period}
+
+def add_operation_to_json(start, end, price, total, profit, period, filename):
+    data = load_data(filename)
+    new_object = create_operation(start, end, price, total, profit, period)
+    data.append(new_object)
+    save_data(data, filename)
+
 def object_exists(new_object, data):
     for obj in data:
         if obj['name'] == new_object['name']:

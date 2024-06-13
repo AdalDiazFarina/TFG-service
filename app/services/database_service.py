@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 from app.models.user_model import User
 from app.models.strategy_model import Strategy
+from app.models.operation_model import Operation
 from app.models.investment_profile_model import InvestmentProfile
 from app.models.investment_profile_strategy_model import InvestmentProfileStrategy
 
@@ -31,6 +32,31 @@ def create_strategy_record(strategy_name, strategy_description, strategy_model):
         session.rollback()
     finally:
         session.close()
+        
+        
+def create_operation(strategy_id, profile_id, data):
+    session = Session()
+    try:
+        aux = 'a'
+        # new_operation = Operation(
+        #     id_strategy=strategy_id,
+        #     id_profile=profile_id,
+        #     start_date=data['init'],
+        #     end_date=data['end'],
+        #     price=data['price'],
+        #     total=data['total'],
+        #     profit=data['profit'],
+        #     period=data['period']
+        # )
+            
+        # session.add(new_operation)
+        # session.commit()
+    except SQLAlchemyError as error:
+        print("&&&& Error creating strategy record: ", error)
+        session.rollback()
+    finally:
+        session.close()
+
 
 def associate_strategies_with_profiles():
     session = Session()
@@ -77,7 +103,6 @@ def associate_strategies_with_profiles():
 
 def updateInvestmentProfileStrategy(profile_id, strategy_id, data):
     session = Session()
-    print('data: ', data)
     try:
         existing_association = session.query(InvestmentProfileStrategy).filter_by(
             investment_profile_id=profile_id,
@@ -85,16 +110,16 @@ def updateInvestmentProfileStrategy(profile_id, strategy_id, data):
         ).first()
         if existing_association:
             existing_association.validated = True
-            existing_association.total_profitability = data[0]['total_profitability']
-            existing_association.volatility = data[0]['volatility']
-            existing_association.maximum_loss = data[0]['maximum_loss']
-            existing_association.sharpe = data[0]['sharpe']
-            existing_association.sortino = data[0]['sortino']
-            existing_association.alpha = data[0]['alpha']
-            existing_association.beta = data[0]['beta']
-            existing_association.information_ratio = data[0]['information_ratio']
-            existing_association.success_rate = data[0]['success_rate']
-            existing_association.portfolio_concentration_ratio = data[0]['portfolio_concentration_ratio']
+            existing_association.total_profitability = data['total_profitability']
+            existing_association.volatility = data['volatility']
+            existing_association.maximum_loss = data['maximum_loss']
+            existing_association.sharpe = data['sharpe']
+            existing_association.sortino = data['sortino']
+            existing_association.alpha = data['alpha']
+            existing_association.beta = data['beta']
+            existing_association.information_ratio = data['information_ratio']
+            existing_association.success_rate = data['success_rate']
+            existing_association.portfolio_concentration_ratio = data['portfolio_concentration_ratio']
             
         session.commit()
         print("### Successfully associated strategies with profiles.")
