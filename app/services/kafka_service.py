@@ -56,13 +56,15 @@ def validateMessage(message):
     ## TODO: Validar el modelo
     ## TODO: Guardar los resultados en la base de datos
     ## TODO: Mensaje terminado validación
-    # filename = './app/data/result.json'
-    # runNotebook('app/notebooks/' + getModelName(message['strategy_id']) + '.ipynb')
-    # data = load_data(filename)
-    # updateInvestmentProfileStrategy(message['profile_id'], message['strategy_id'], data)
-    # filename = './app/data/operations.json'
-    # data = load_data(filename)
-    # create_operations(message['profile_id'], message['strategy_id'], data)
+    filename = './app/data/result.json'
+    runNotebook('app/notebooks/' + getModelName(message['strategy_id']) + '.ipynb')
+    data = load_data(filename)
+    updateInvestmentProfileStrategy(message['profile_id'], message['strategy_id'], data)
+    clearNotebook(filename)
+    filename = './app/data/operations.json'
+    data = load_data(filename)
+    create_operations(message['profile_id'], message['strategy_id'], data)
+    clearNotebook(filename)
     # print('- Validating message ...')
     # print('######################')
     # return {"message": "Validation successful!", "code": 1, "strategy_id": message['strategy_id'], "profile_id": message['profile_id']}
@@ -75,3 +77,6 @@ def runNotebook(route):
     runner = ExecutePreprocessor(timeout=None)
     runner.preprocess(notebook, {'metadata': {'path': os.path.dirname(route)}})
     
+def clearNotebook(filename):
+    with open(filename, 'w') as json_file:
+        json.dump([], json_file)

@@ -22,12 +22,12 @@ def save_data(data, filename):
 def create_object(name, description, model):
     return {'name': name, 'description': description, 'model': model}
 
-def create_operation(start, end, price, total, profit, period):
-    return {'start': start, 'end': end, 'price': price, 'total': total, 'profit': profit, 'period': period}
+def create_operation(operation_type, asset, operation_date, amount, unit_price, total_return, period):
+    return {'operation_type': operation_type, 'asset': asset, 'operation_date': operation_date, 'amount': amount, 'unit_price': unit_price, 'total_return': total_return, 'period': period}
 
-def add_operation_to_json(start, end, price, total, profit, period, filename):
+def add_operation_to_json(operation_type, asset, operation_date, amount, unit_price, total_return, period, filename):
     data = load_data(filename)
-    new_object = create_operation(start, end, price, total, profit, period)
+    new_object = create_operation(operation_type, asset, operation_date, amount, unit_price, total_return, period)
     data.append(new_object)
     save_data(data, filename)
 

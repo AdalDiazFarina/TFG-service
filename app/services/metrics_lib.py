@@ -2,7 +2,7 @@ from app.services.json_service import add_operation_to_json
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from app.services.database_service import create_strategy_record, create_operation, updateInvestmentProfileStrategy
+from app.services.json_service import add_object_to_json, add_operation_to_json, update_json_values
 
 class Metrics:
   def __init__(self, initial_capital, monthly_contribution, strategy_id, profile_id, comission):
@@ -14,14 +14,17 @@ class Metrics:
   
   ### Operations in the db
   def InitStrategy(self, name, description, model):
-    create_strategy_record(name, description, model)
+    filename = '../data/strategies.json'
+    add_object_to_json(name, description, model, filename)
     
   ## Saving Operation in the db
-  def CreateOperation(self, init, end, price, total, profit, period):
-    data = {'init': init, 'end': end, 'price': price, 'total': total, 'profit': profit, 'period': period}
-    create_operation(self.strategy_id, self.profile_id, data)
+  def CreateOperation(self, asset, operation_date, operation_type, amount, unit_price, total_return, period):
+    filename = '../data/operation.json'
+    add_operation_to_json(operation_type, asset, operation_date, amount, unit_price, total_return, period, filename)
+    
     
   def UpdateInvestmentProfileStrategy(self, total_returns, volatility_values, max_loss_values, sharpe_ratio_values, sortino_ratio_values, alphas, betas, information_ratio_data, success_rate, portfolio_concentration_rate):
+    filename = '../data/result.json'
     data = {
       'total_profitability': np.mean(total_returns),
       'volatility': np.mean(volatility_values),
@@ -34,40 +37,7 @@ class Metrics:
       'success_rate': success_rate,
       'portfolio_concentration_ratio': portfolio_concentration_rate,
     }
-    updateInvestmentProfileStrategy(self.strategy_id, self.profile_id, data)
-    
-
-  ## This method calculate the total return of one active
-  def TotalReturn(self, df_timeline, period, initial_capital=None):
-    if (initial_capital is None): initial_capital = self.initial_capital
-    operations = pd.DataFrame(columns=['Date', 'Price', 'Total'])
-    total_return = initial_capital - (initial_capital * self.comission / 100)
-    for _, row in df_timeline.iterrows():
-      # Prive movement. 1 -> 100% and -1 -> -100%
-      movement = (row['Close'] - row['Open']) / row['Open']
-      total_return += total_return * movement
-      total_return += self.monthly_contribution - (self.monthly_contribution * self.comission / 100)
-      if not pd.isna(row['Dividends']):
-        total_return += total_return * row['Dividends'] / 100 
-      # Operation
-      operations.loc[len(operations)] = {
-        'Date': row['Date'],
-        'Price': row['Open'],
-        'Total': total_return,
-        'Period': period
-      }
-      self.CreateOperation(
-        str(row['Date']),
-        '',
-        str(row['Open']),
-        total_return,
-        '',
-        period
-      )
-    return {
-      'total': total_return,
-      'operations': operations
-    }
+    update_json_values(data, filename)
     
   ## This function show the acive performance 
   def ShowTimelineTotalReturn(self, data):
@@ -126,23 +96,6 @@ class Metrics:
     plt.xlabel('Date')
     plt.tight_layout()
     plt.show()
-    
-
-  ## This method calculate the annualized return of one active
-  def AnnualizedReturn(self, df, start_year, end_year, period):
-    total_annual_profit = []
-    capital = self.initial_capital + self.monthly_contribution * 12
-    for year in range(start_year, end_year + 1):
-      filtered_data = df.loc[df['Date'].dt.year == year]
-      total_return_after_one_year = self.TotalReturn(filtered_data, period, capital)
-      capital += self.monthly_contribution * 12
-      variation = (total_return_after_one_year['total'] - capital) / capital * 100
-      capital = total_return_after_one_year['total']
-      total_annual_profit.append({
-        'year': year,
-        'variation': variation
-      })
-    return total_annual_profit
 
   ## This method calculate the mean anunualized return of one active
   def MeanAnnualizedReturn(self, annual_returns): 
