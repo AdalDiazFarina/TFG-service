@@ -2,6 +2,7 @@ from app.services.json_service import add_operation_to_json
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import requests
 from app.services.json_service import add_object_to_json, add_operation_to_json, update_json_values
 
 class Metrics:
@@ -38,8 +39,65 @@ class Metrics:
       'portfolio_concentration_ratio': portfolio_concentration_rate,
     }
     update_json_values(data, filename)
+
+  # This method sets the date to be month and year.
+  def dividendByYearAndMonth(self, data):
+    df = pd.DataFrame(data)
+    df['Date'] = pd.to_datetime(df.index)
+    df.set_index('Date', inplace=True)
+    df.index = df.index.strftime('%Y-%m')
+    return df
+
+  # This method joins the ETF data with its dividends.
+  def joinDataAndDividends(self, data, dividends):
+    dividends = self.dividendByYearAndMonth(dividends)
+    dividends = dividends.reset_index()
+    dividends['Date'] = pd.to_datetime(dividends['Date'])
+    dividends['Year_Month'] = dividends['Date'].dt.to_period('M')
+    data.index = pd.to_datetime(data.index)
+    data['Year_Month'] = data.index.to_period('M')
+    merged_df = pd.merge(data, dividends, on='Year_Month', how='left')
+    merged_df.drop('Date', axis=1, inplace=True)
+    merged_df.rename(columns={'Year_Month': 'Date'}, inplace=True)
+    return merged_df
+  
+
+  def AnnualInflation(self, url):
+    # Map the month name to the number
+    month_map = {
+        "January": "01",
+        "February": "02",
+        "March": "03",
+        "April": "04",
+        "May": "05",
+        "June": "06",
+        "July": "07",
+        "August": "08",
+        "September": "09",
+        "October": "10",
+        "November": "11",
+        "December": "12"
+    }
+
+    # Request
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        series_data = data['Results']['series'][0]['data']
+        data_list = [{'year': point['year'], 'period': point['periodName'], 'value': point['value']} for point in series_data]
+        df = pd.DataFrame(data_list)
+        df['date'] = pd.to_datetime(df['year'] + '-' + df['period'].apply(lambda x: month_map[x]), format='%Y-%m')
+        df.drop(columns=['year', 'period'], inplace=True)
+        df = df[::-1]
+        annual_inflation = df.groupby(df['date'].dt.year)['value'].agg(['first', 'last']).rename(columns={'first': 'cpi_start', 'last': 'cpi_end'})
+        annual_inflation[['cpi_start', 'cpi_end']] = annual_inflation[['cpi_start', 'cpi_end']].apply(pd.to_numeric)
+        annual_inflation['inflation_rate'] = ((annual_inflation['cpi_end'] - annual_inflation['cpi_start']) / annual_inflation['cpi_start']) * 100
+        return annual_inflation
+    else:
+        print("Error en la solicitud:", response.status_code)
+
     
-  ## This function show the acive performance 
+  ## This method show the acive performance 
   def ShowTimelineTotalReturn(self, data):
     fig = plt.figure(figsize=(10, 6*len(data)))
     for i, item in enumerate(data):
