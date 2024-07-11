@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="/home/adal110/workspace/tfg/tfg-service/venv"
+VIRTUAL_ENV="/home/adal110/workspace/tfg/TFG-service/venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

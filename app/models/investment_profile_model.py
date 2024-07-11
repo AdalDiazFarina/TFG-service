@@ -13,5 +13,5 @@ class InvestmentProfile(Base):
     name = Column(String(255))
     description = Column(String(255))
     initial_capital = Column(Numeric)
-    duration = Column(Date)
+    duration = Column(Numeric)
     monthly_contribution = Column(Numeric)

@@ -8,13 +8,13 @@ import enum
 Base = declarative_base()
 
 class OperationTypeEnum(enum.Enum):
-    Buy = 'Buy'
-    Sell = 'Sell'
+    buy = 'buy'
+    sell = 'sell'
 
 class PeriodEnum(enum.Enum):
-    period_1 = 'Period 1'
-    period_2 = 'Period 2'
-    period_3 = 'Period 3'
+    period_1 = 'period_1'
+    period_2 = 'period_2'
+    period_3 = 'period_3'
 
 class Operation(Base):
   __tablename__ = 'operation'
@@ -26,7 +26,7 @@ class Operation(Base):
   amount = Column(Numeric(15, 2), nullable=False)
   unit_price = Column(Numeric(15, 2), nullable=False)
   total_return = Column(Numeric(15, 2), nullable=False)
-  period = Column(Enum('Period 1', 'Period 2', 'Period 3', name='period'), nullable=False)
+  period = Column(Enum(PeriodEnum, name='period'), nullable=False)
   
   investment_profile_id = Column(Integer, nullable=False)
   strategy_id = Column(Integer, nullable=False)

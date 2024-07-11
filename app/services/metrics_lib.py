@@ -24,12 +24,13 @@ class Metrics:
     add_operation_to_json(operation_type, asset, operation_date, amount, unit_price, total_return, period, filename)
     
     
-  def UpdateInvestmentProfileStrategy(self, total_returns, volatility_values, max_loss_values, sharpe_ratio_values, sortino_ratio_values, alphas, betas, information_ratio_data, success_rate, portfolio_concentration_rate):
+  def UpdateInvestmentProfileStrategy(self, total_returns, annualized_return, volatility_values, max_loss_values, sharpe_ratio_values, sortino_ratio_values, alphas, betas, information_ratio_data, success_rate, portfolio_concentration_rate):
     filename = '../data/result.json'
     data = {
       'total_profitability': np.mean(total_returns),
+      'annual_return': np.mean(annualized_return),
       'volatility': np.mean(volatility_values),
-      'maximum_loss': np.mean(max_loss_values),
+      'maximum_loss': np.min(max_loss_values),
       'sharpe': np.mean(sharpe_ratio_values),
       'sortino': np.mean(sortino_ratio_values),
       'alpha': np.mean(alphas),
@@ -102,7 +103,7 @@ class Metrics:
     fig = plt.figure(figsize=(10, 6*len(data)))
     for i, item in enumerate(data):
         operations = item['operations']
-        operations['Date'] = operations['Date'].dt.to_timestamp()
+        operations['Date'] = operations['Date'].apply(lambda x: x.to_timestamp() if hasattr(x, 'to_timestamp') else pd.to_datetime(x))
         dates = operations['Date']
         total = operations['Total']
         ax = fig.add_subplot(len(data), 1, i+1)
@@ -111,7 +112,6 @@ class Metrics:
         ax.set_title(f'Total Return: {item["total"]}')
         ax.set_xlim(min(dates), max(dates))
         ax.tick_params(axis='x', rotation=45)
-
     plt.xlabel('Date')
     plt.tight_layout()
     plt.show()
@@ -223,31 +223,68 @@ class Metrics:
         
     return [array_volatility, volatility]
 
+  def returns(self, totals):
+    result = []
+    for i, item in enumerate(totals):
+        if i == 0:
+            result.append((item - (self.initial_capital + self.monthly_contribution)) / (self.initial_capital + self.monthly_contribution))
+        else:
+            result.append((item - (totals[i - 1] + self.monthly_contribution)) / (totals[i - 1] + self.monthly_contribution))
+    return np.array(result)
+
   def CalculateMaximunLoss(self, data):
+    price_diffs = []
     max_loss_values = []
     for item in data:
       operations = item['operations']
-      price_diff = operations['Price'].diff()
+      price_diff = self.returns(operations['Total'])
+      price_diffs.append(price_diff)
       max_loss_values.append(np.min(price_diff))
       
-    return [price_diff, max_loss_values]
+    return [price_diffs, max_loss_values]
       
 
   ## This method show the maximunLossGraphic
-  def showMaximunLossGraphic(self, data, price_diff):
-      plt.figure(figsize=(10, 6))
+  def showMaximunLossGraphic(self, data, max_loss_values):
+    fig, ax = plt.subplots(len(data), 1, figsize=(12, 5 * len(data)))
+    
+    if len(data) == 1:
+        ax = [ax]
+    
+    for i, item in enumerate(data):
+        operations = item['operations']
+        prices = operations['Price']
+        price_diff = prices.diff()
+        max_loss = max_loss_values[i]
 
-      for index, item in enumerate(data):
-          plt.plot(price_diff, label=f'Total Return: {item["total"]}')
+        # Graficar los precios
+        ax[i].plot(prices, label='Price', color='blue')
+        ax[i].set_title(f'Price and Drawdowns for Dataset {i+1}')
+        ax[i].set_xlabel('Time')
+        ax[i].set_ylabel('Price')
+        
+        # Resaltar las caídas (dropdowns)
+        peak = prices[0]
+        drawdowns = []
+        for j, price in enumerate(prices):
+            if price > peak:
+                peak = price
+            else:
+                drawdowns.append((j, price))
+        
+        if drawdowns:
+            drawdown_indices, drawdown_values = zip(*drawdowns)
+            ax[i].scatter(drawdown_indices, drawdown_values, color='red', label='Drawdowns', zorder=5)
 
-      plt.xlabel('Operation Number')
-      plt.ylabel('Variations')
-      plt.title('Price Variation Comparison')
-
-      plt.legend()
-      plt.grid(True)
-      plt.tight_layout()
-      plt.show()
+        # Mostrar la pérdida máxima en la gráfica
+        for j in range(1, len(prices)):
+            if prices[j] < prices[j - 1]:
+                ax[i].plot([j - 1, j], [prices[j - 1], prices[j]], color='red', linestyle='--', alpha=0.5, zorder=1)
+        
+        ax[i].legend()
+    
+    plt.tight_layout()
+    plt.show()
       
       
   ## This method show in a dataframe the maximun loss values    
@@ -278,13 +315,17 @@ class Metrics:
     
   ## This method calulate the sortino ratio value
   def SortinoRatio(self, returns, risk_free_rate, target_return=0):
-      downside_returns = np.minimum(returns - target_return, 0)
-      downside_std = np.std(downside_returns)
-      
-      if downside_std == 0:
-          return np.nan
-      
-      return (returns.mean() - risk_free_rate) / downside_std
+    downside_returns = np.minimum(returns - target_return, 0)
+    # Calculamos la desviación estándar de los rendimientos negativos
+    downside_std = np.std(downside_returns, ddof=0)
+    # Si no hay rendimientos negativos, evitamos la división por cero
+    if downside_std == 0:
+        return np.nan
+    # Calculamos la tasa de rendimiento mensual libre de riesgo
+    monthly_risk_free_rate = (1 + risk_free_rate) ** (1/12) - 1
+    # Calculamos el Sortino Ratio
+    mean_return = np.mean(returns)
+    return (mean_return - monthly_risk_free_rate) / downside_std
 
   def CalculateAccumulatedTotalReturn(self, num_months, start_year, annual_inflation):
     total = self.initial_capital

@@ -57,3 +57,7 @@ def update_json_values(new_values, filename):
         save_data(data, filename)
     else:
         print("Could not load any data from the JSON file.")
+
+def clearNotebook(filename):
+    with open(filename, 'w') as json_file:
+        json.dump([], json_file)

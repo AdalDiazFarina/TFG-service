@@ -21,3 +21,4 @@ class InvestmentProfileStrategy(Base):
     information_ratio = Column(Numeric)
     success_rate = Column(Numeric)
     portfolio_concentration_ratio = Column(Numeric)
+    annual_return = Column(Numeric)

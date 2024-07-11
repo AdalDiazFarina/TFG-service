@@ -1,13 +1,14 @@
 [
     {
-        "total_profitability": 8717.649693654652,
-        "volatility": 5.862710200422298,
-        "maximum_loss": -24.84333038330078,
-        "sharpe": 1.9816391165652287,
-        "sortino": -306.4744486298525,
-        "alpha": 20.356894281503315,
-        "beta": 0.6670797440145874,
-        "information_ratio": 1.9816391165652287,
+        "total_profitability": 9952.473572757588,
+        "annual_return": 9.498034845617338,
+        "volatility": 2.011667137266345,
+        "maximum_loss": -0.01774216540382626,
+        "sharpe": 3.3991419961757017,
+        "sortino": 0.5,
+        "alpha": 0.08047351682121,
+        "beta": 3.888444169778928,
+        "information_ratio": 3.3991419961757017,
         "success_rate": 0.0,
         "portfolio_concentration_ratio": 75.16751675167515
     }

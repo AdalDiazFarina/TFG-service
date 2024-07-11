@@ -19,12 +19,12 @@ def run():
     print(r.stderr)
 
 def kafka_is_running():
-    try:
-        output = subprocess.check_output(["docker", "ps", "-f", "name=kafka"])
-        output_str = output.decode("utf-8")
-        return 'kafka' in output_str
-    except subprocess.CalledProcessError:
-        return False
+  try:
+      output = subprocess.check_output(["docker", "ps", "-f", "name=kafka"])
+      output_str = output.decode("utf-8")
+      return 'kafka' in output_str
+  except subprocess.CalledProcessError:
+      return False
 def run_kafka():
   print("Running kafka")
   kafka_service = KafkaService()
@@ -32,19 +32,18 @@ def run_kafka():
 
 
 def main():
-    filename = 'app/data/strategies.json'
-    data = load_data(filename)
-
-    for strategy in data:
-        name = strategy.get('name', '')
-        description = strategy.get('description', '')
-        model = strategy.get('model', '')
-        if name and description and model:
-            create_strategy_record(name, description, model)
-        else:
-            print("The object in the JSON file does not have complete 'name' and 'description' fields.")
-    
-    associate_strategies_with_profiles()
+  filename = 'app/data/strategies.json'
+  data = load_data(filename)
+  for strategy in data:
+    name = strategy.get('name', '')
+    description = strategy.get('description', '')
+    model = strategy.get('model', '')
+    if name and description and model:
+        create_strategy_record(name, description, model)
+    else:
+        print("The object in the JSON file does not have complete 'name' and 'description' fields.")
+  
+  associate_strategies_with_profiles()
 
 if __name__ == '__main__':
     main()

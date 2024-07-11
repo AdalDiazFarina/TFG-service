@@ -5,6 +5,8 @@ from app.models.user_model import User
 from app.models.strategy_model import Strategy
 from app.models.investment_profile_model import InvestmentProfile
 from app.models.investment_profile_strategy_model import InvestmentProfileStrategy
+from app.models.operation_model import Operation
+import json
 
 # Crear un objeto Session de SQLAlchemy
 engine = create_engine("postgresql://root:1234@localhost:5432/FundFlowForge")
@@ -64,6 +66,7 @@ def associate_strategies_with_profiles():
                         information_ratio=0.0,
                         success_rate=0.0,
                         portfolio_concentration_ratio=0.0,
+                        annual_return=0.0,
                     )
                     session.add(new_entry)
 
@@ -77,7 +80,6 @@ def associate_strategies_with_profiles():
 
 def updateInvestmentProfileStrategy(profile_id, strategy_id, data):
     session = Session()
-    print('data: ', data)
     try:
         existing_association = session.query(InvestmentProfileStrategy).filter_by(
             investment_profile_id=profile_id,
@@ -95,14 +97,45 @@ def updateInvestmentProfileStrategy(profile_id, strategy_id, data):
             existing_association.information_ratio = data[0]['information_ratio']
             existing_association.success_rate = data[0]['success_rate']
             existing_association.portfolio_concentration_ratio = data[0]['portfolio_concentration_ratio']
+            existing_association.annual_return = data[0]['annual_return']
             
         session.commit()
+
         print("### Successfully associated strategies with profiles.")
     except SQLAlchemyError as error:
         print("&&&& Error associating strategies with profiles:", error)
         session.rollback()
     finally:
         session.close()
+
+def create_operations(profile_id, strategy_id, data):
+    session = Session()
+    operations_to_delete = session.query(Operation).filter_by(
+        investment_profile_id=profile_id,
+        strategy_id=strategy_id
+    ).all()
+
+    for operation in operations_to_delete:
+        session.delete(operation)
+
+    session.commit()
+
+    for i in range(len(data)):
+       new_entry = Operation(
+        operation_type=data[i]["operation_type"],
+        asset=data[i]["asset"],
+        operation_date=data[i]["operation_date"],
+        amount=data[i]["amount"],
+        unit_price=data[i]["unit_price"],
+        total_return=data[i]["total_return"],
+        investment_profile_id=profile_id,
+        strategy_id=strategy_id,
+        period=data[i]["period"]
+       )
+
+       session.add(new_entry)
+
+    session.commit()
 
 def getModelName(id):
     session = Session()
